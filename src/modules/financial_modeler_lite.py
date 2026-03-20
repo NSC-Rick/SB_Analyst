@@ -5,6 +5,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime
+from src.modules.valuation_engine import render_valuation_engine
 
 
 def render_financial_modeler_lite():
@@ -14,7 +15,7 @@ def render_financial_modeler_lite():
     st.markdown("*Core financial analysis and scenario modeling for small businesses*")
     st.divider()
     
-    tab1, tab2, tab3 = st.tabs(["📊 Model Inputs", "📈 Analysis", "💡 Insights"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📊 Model Inputs", "📈 Analysis", "💡 Insights", "💎 Valuation"])
     
     with tab1:
         render_inputs_section()
@@ -24,6 +25,9 @@ def render_financial_modeler_lite():
     
     with tab3:
         render_insights_section()
+    
+    with tab4:
+        render_valuation_engine()
 
 
 def render_inputs_section():
