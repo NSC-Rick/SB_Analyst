@@ -3,7 +3,7 @@ North Star Unified Shell - Configuration Settings
 """
 
 APP_CONFIG = {
-    "app_name": "North Star Business Lab",
+    "app_name": "Business Lab",
     "app_tagline": "Small Business Decision Support Platform",
     "version": "1.0.0 Lite",
     "mode": "Lite",
@@ -34,9 +34,9 @@ MODULE_CONFIG = {
         "active_tools": {
             "title": "ACTIVE TOOLS",
             "modules": [
-                {"name": "Financial Modeler Lite", "icon": "💰", "implemented": True},
-                {"name": "Financial Modeler Pro", "icon": "💎", "implemented": True},
-                {"name": "Idea Screener", "icon": "💡", "implemented": False},
+                {"name": "Idea Screener", "icon": "�", "implemented": False},
+                {"name": "Financial Modeler Lite", "icon": "�", "implemented": True},
+                {"name": "Financial Modeler Pro", "icon": "�", "implemented": True},
             ]
         },
         "intelligence": {
