@@ -6,10 +6,13 @@ Author: North Star Business Intelligence
 Version: 1.0.0 Lite
 """
 import streamlit as st
-from src.config.settings import UI_CONFIG
+from src.config.settings import UI_CONFIG, MODULE_CONFIG
 from src.state.app_state import initialize_state, get_active_module
 from src.ui.shell import render_shell
+from src.ui.placeholders import render_placeholder
 from src.modules.financial_modeler_lite import render_financial_modeler_lite
+from src.modules.financial_modeler_pro import render_financial_modeler_pro
+from src.modules.valuation_logic import calculate_revenue_multiple, calculate_earnings_multiple
 from src.modules.insights_panel import render_insights_panel
 
 
@@ -105,10 +108,135 @@ def render_main_content():
     
     if active_module == "Financial Modeler Lite":
         render_financial_modeler_lite()
+    elif active_module == "Financial Modeler Pro":
+        render_financial_modeler_pro()
+    elif active_module == "Value Engine":
+        render_value_engine()
+    elif active_module == "Funding Engine":
+        render_funding_engine()
     elif active_module == "Insights":
         render_insights_panel()
     else:
-        st.error(f"Module '{active_module}' not found")
+        if is_module_implemented(active_module):
+            st.error(f"Module '{active_module}' is implemented but not routed correctly")
+        else:
+            render_placeholder(active_module)
+
+
+def is_module_implemented(module_name):
+    """Check if a module is marked as implemented in config"""
+    module_groups = MODULE_CONFIG.get("module_groups", {})
+    for group_data in module_groups.values():
+        for module in group_data["modules"]:
+            if module["name"] == module_name:
+                return module["implemented"]
+    return False
+
+
+def render_value_engine():
+    """Render the Value Engine module (integrated valuation)"""
+    st.markdown("## 💎 Value Engine")
+    st.markdown("*Business valuation and value driver analysis*")
+    st.divider()
+    
+    st.info("💡 **Value Engine** provides comprehensive business valuation across all your financial models.")
+    
+    st.markdown("### 🎯 Quick Valuation")
+    st.write("The Value Engine is integrated into Financial Modeler Lite as the **Valuation** tab.")
+    
+    st.markdown("### 📊 How to Use")
+    st.markdown("1. Navigate to **Financial Modeler Lite** in the sidebar")
+    st.markdown("2. Complete your inputs in the **Model Inputs** tab")
+    st.markdown("3. Open the **Valuation** tab to see your business value estimates")
+    
+    st.divider()
+    
+    st.markdown("### 💎 Valuation Methods Available")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("**Revenue Multiple**")
+        st.write("Value based on revenue (1.5x - 4.0x)")
+        st.caption("✅ Available now")
+        
+        st.markdown("**Earnings Multiple**")
+        st.write("Value based on profit (3x - 6x)")
+        st.caption("✅ Available now")
+    
+    with col2:
+        st.markdown("**Weighted Valuation**")
+        st.write("Combined multi-method approach")
+        st.caption("🔒 Coming soon")
+        
+        st.markdown("**DCF Analysis**")
+        st.write("Discounted cash flow valuation")
+        st.caption("🔒 Coming soon")
+    
+    st.divider()
+    
+    if st.button("🚀 Go to Financial Modeler Lite", type="primary", use_container_width=True):
+        from src.state.app_state import set_active_module
+        set_active_module("Financial Modeler Lite")
+        st.rerun()
+
+
+def render_funding_engine():
+    """Render the Funding Engine module (placeholder with roadmap)"""
+    st.markdown("## 🏦 Funding Engine")
+    st.markdown("*Capital planning and financing strategy*")
+    st.divider()
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown("### 📋 Overview")
+        st.write("The Funding Engine helps you model capital needs, compare financing options, and plan your funding strategy.")
+        
+        st.divider()
+        
+        st.markdown("### 🎯 Planned Capabilities")
+        st.markdown("- **Capital Needs Calculator** - Determine how much funding you need")
+        st.markdown("- **Financing Options Comparison** - Compare debt vs equity vs bootstrapping")
+        st.markdown("- **Loan Modeling** - Model different loan terms and repayment schedules")
+        st.markdown("- **Dilution Calculator** - Understand equity dilution scenarios")
+        st.markdown("- **Runway Analysis** - Calculate cash runway and burn rate")
+        st.markdown("- **Investor Readiness** - Assess readiness for fundraising")
+        
+        st.divider()
+        
+        st.markdown("### 💡 Use Case")
+        st.info("Essential for businesses planning to raise capital, take on debt, or optimize their capital structure. Integrates with Financial Modeler to project funding needs based on growth plans.")
+    
+    with col2:
+        st.markdown("### 🚧 Status")
+        st.warning("**In Development**")
+        st.caption("High priority module")
+        
+        st.divider()
+        
+        st.markdown("### 🔔 Get Notified")
+        if st.button("Express Interest", use_container_width=True):
+            st.success("✓ Interest noted!")
+        
+        st.divider()
+        
+        st.markdown("### 🔗 Related Tools")
+        st.caption("• Financial Modeler Pro")
+        st.caption("• Value Engine")
+    
+    st.divider()
+    
+    st.markdown("### 🏗️ Development Roadmap")
+    st.success("✨ **High Priority** - Scheduled for near-term development")
+    st.caption("Expected in next major release")
+    
+    st.divider()
+    
+    st.markdown("### 💬 Feedback Welcome")
+    st.write("Have specific needs for funding analysis? Your input helps us prioritize features.")
+    if st.button("Share Feedback", use_container_width=True, key="funding_feedback"):
+        st.success("✓ Thank you! Your feedback has been noted.")
 
 
 def main():

@@ -30,6 +30,46 @@ MODULE_CONFIG = {
         "lite": ["Financial Modeler Lite"],
         "advisor": ["Financial Modeler Lite", "Cash Flow Engine", "Valuation Engine", "Business Plan Builder"],
     },
+    "module_groups": {
+        "active_tools": {
+            "title": "ACTIVE TOOLS",
+            "modules": [
+                {"name": "Financial Modeler Lite", "icon": "💰", "implemented": True},
+                {"name": "Financial Modeler Pro", "icon": "💎", "implemented": True},
+                {"name": "Idea Screener", "icon": "💡", "implemented": False},
+            ]
+        },
+        "intelligence": {
+            "title": "INTELLIGENCE",
+            "modules": [
+                {"name": "Value Engine", "icon": "💎", "implemented": True},
+                {"name": "Funding Engine", "icon": "🏦", "implemented": True},
+                {"name": "Insights Engine", "icon": "🧠", "implemented": False},
+            ]
+        },
+        "planning": {
+            "title": "PLANNING",
+            "modules": [
+                {"name": "Business Plan Builder", "icon": "📊", "implemented": False},
+                {"name": "Growth Scenario Planner", "icon": "📈", "implemented": False},
+                {"name": "Workforce / RPLH Analyzer", "icon": "👥", "implemented": False},
+            ]
+        },
+        "system": {
+            "title": "SYSTEM",
+            "modules": [
+                {"name": "Clients", "icon": "📂", "implemented": False},
+                {"name": "Settings", "icon": "⚙️", "implemented": False},
+            ]
+        },
+        "expand": {
+            "title": "EXPAND",
+            "modules": [
+                {"name": "Advisor Mode", "icon": "🚀", "implemented": False},
+                {"name": "Advanced Modules", "icon": "🔓", "implemented": False},
+            ]
+        }
+    }
 }
 
 FEATURE_FLAGS = {
