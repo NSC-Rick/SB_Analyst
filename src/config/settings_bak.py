@@ -3,14 +3,14 @@ North Star Unified Shell - Configuration Settings
 """
 
 APP_CONFIG = {
-    "app_name": "Small Business Lab",
+    "app_name": "Business Lab",
     "app_tagline": "Small Business Decision Support Platform",
     "version": "1.0.0 Lite",
     "mode": "Lite",
 }
 
 UI_CONFIG = {
-    "page_title": "Small Business Lab",
+    "page_title": "North Star Business Lab",
     "page_icon": "⭐",
     "layout": "wide",
     "initial_sidebar_state": "expanded",
@@ -25,7 +25,7 @@ THEME_CONFIG = {
 }
 
 MODULE_CONFIG = {
-    "default_module": "Idea Screener",
+    "default_module": "Financial Modeler Lite",
     "available_modules": {
         "lite": ["Financial Modeler Lite"],
         "advisor": ["Financial Modeler Lite", "Cash Flow Engine", "Valuation Engine", "Business Plan Builder"],
@@ -37,16 +37,16 @@ MODULE_CONFIG = {
                 {"name": "Idea Screener", "icon": "", "implemented": True},
                 {"name": "Financial Modeler Lite", "icon": "", "implemented": True},
                 {"name": "Financial Modeler Pro", "icon": "", "implemented": True},
-                {"name": "LOC Analyzer", "icon": "", "implemented": True},
-                {"name": "Business Valuation", "icon": "", "implemented": True},
-                
-                
             ]
         },
         "intelligence": {
             "title": "INTELLIGENCE",
             "modules": [
-                
+                {"name": "Business Valuation", "icon": "", "implemented": True},
+                {"name": "LOC Analyzer", "icon": "", "implemented": True},
+                {"name": "Funding Engine", "icon": "", "implemented": True},
+                {"name": "Insights Engine", "icon": "", "implemented": True},
+                {"name": "LOC Analyzer", "icon": "", "implemented": True},
                 {"name": "Funding Engine", "icon": "", "implemented": True},
                 {"name": "Insights Engine", "icon": "", "implemented": True},
             ]
