@@ -10,6 +10,7 @@ from src.ui.key_manager import (
     get_module_collision_report,
     generate_debug_key_map
 )
+from src.ui.save_load_panel import render_save_load_compact
 
 
 def render_sidebar():
@@ -44,6 +45,9 @@ def render_sidebar():
         for group_key, group_data in module_groups.items():
             render_module_group(group_key, group_data, current_module, debug_mode)
             st.divider()
+        
+        # Save/Load Panel
+        render_save_load_compact()
         
         st.markdown("---")
         st.caption("North Star Business Lab")

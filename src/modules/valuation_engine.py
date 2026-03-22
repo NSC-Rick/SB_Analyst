@@ -10,6 +10,8 @@ from src.state.financial_state import (
 )
 from src.modules.valuation_logic import (
     calculate_valuation_completeness,
+    calculate_valuation_readiness_score,
+    evaluate_unlock_conditions,
     is_method_available,
     calculate_primary_valuation,
     calculate_revenue_multiple_valuation,
@@ -17,8 +19,10 @@ from src.modules.valuation_logic import (
     calculate_weighted_valuation,
     calculate_scenario_valuation,
     generate_valuation_insights,
+    generate_unlock_guidance,
     get_value_drivers,
-    get_method_status
+    get_method_status,
+    get_method_status_detailed
 )
 
 
@@ -41,8 +45,9 @@ def render_business_valuation():
         st.caption(f"📊 *Using financial data from {source}*")
     
     completeness = calculate_valuation_completeness(core)
+    readiness_score = calculate_valuation_readiness_score(core)
     
-    render_completeness_section(completeness)
+    render_readiness_section(readiness_score, core)
     
     st.divider()
     
@@ -50,7 +55,11 @@ def render_business_valuation():
     
     st.divider()
     
-    render_method_breakdown_panel(core)
+    render_method_breakdown_panel_enhanced(core)
+    
+    st.divider()
+    
+    render_unlock_guidance_section(core)
     
     st.divider()
     
@@ -58,11 +67,11 @@ def render_business_valuation():
     
     st.divider()
     
-    render_value_drivers_section()
+    render_insights_section(core)
     
     st.divider()
     
-    render_insights_section(core)
+    render_value_drivers_section()
     
     st.divider()
     
@@ -122,23 +131,28 @@ def render_no_data_state():
         """)
 
 
-def render_completeness_section(completeness):
-    """Render valuation completeness progress"""
+def render_readiness_section(readiness_score, core):
+    """Render valuation readiness with progress tracking"""
     
-    st.markdown("### 📊 Valuation Completeness")
+    st.markdown("### 📊 Valuation Readiness")
     
-    col1, col2 = st.columns([3, 1])
+    col1, col2, col3 = st.columns([2, 1, 1])
     
     with col1:
-        st.progress(completeness / 100)
+        st.progress(readiness_score / 100)
     
     with col2:
-        st.metric("Score", f"{completeness}%")
+        st.metric("Readiness", f"{readiness_score:.0f}%")
     
-    if completeness < 100:
-        st.caption("💡 Complete more financial data to unlock additional valuation methods")
+    with col3:
+        conditions = evaluate_unlock_conditions(core)
+        unlocked_count = sum([conditions["revenue"], conditions["profit"]])
+        st.metric("Methods", f"{unlocked_count}/2")
+    
+    if readiness_score < 100:
+        st.caption("💡 Improve financial metrics to unlock advanced valuation methods")
     else:
-        st.caption("✅ All inputs complete - full valuation methods available")
+        st.success("✅ All core valuation methods unlocked!")
 
 
 def render_primary_valuation_section(core):
@@ -172,32 +186,40 @@ def render_primary_valuation_section(core):
     st.session_state["valuation_range"] = (low, high)
 
 
-def render_method_breakdown_panel(core):
-    """Render method availability breakdown"""
+def render_method_breakdown_panel_enhanced(core):
+    """Render enhanced method availability with unlock conditions"""
     
-    st.markdown("### � Valuation Method Status")
+    st.markdown("### 🔍 Valuation Method Status")
     
-    method_status = get_method_status(core)
+    method_status = get_method_status_detailed(core)
     
-    for method_name, (available, icon, description) in method_status.items():
-        col1, col2 = st.columns([3, 1])
-        
-        with col1:
-            if available:
-                st.markdown(f"**{method_name}**")
-            else:
-                st.markdown(f"{method_name}")
-            st.caption(description)
-        
-        with col2:
-            if available:
-                st.success(f"{icon} Available")
-            elif method_name in ["DCF", "Industry Comps"]:
-                st.info(f"{icon} Future")
-            else:
-                st.warning(f"{icon} Locked")
-        
-        st.markdown("")
+    for method_name, details in method_status.items():
+        with st.container():
+            col1, col2 = st.columns([3, 1])
+            
+            with col1:
+                if details["available"]:
+                    st.markdown(f"**{method_name}** {details['icon']}")
+                else:
+                    st.markdown(f"{method_name} {details['icon']}")
+                st.caption(details["description"])
+                
+                if details["conditions"]:
+                    for condition in details["conditions"]:
+                        if condition["met"]:
+                            st.caption(f"   ✔ {condition['label']}")
+                        else:
+                            st.caption(f"   ❌ {condition['label']}")
+            
+            with col2:
+                if details["available"]:
+                    st.success("Available")
+                elif method_name in ["DCF", "Industry Comps"]:
+                    st.info("Future")
+                else:
+                    st.warning("Locked")
+            
+            st.markdown("")
 
 
 def render_scenario_section(core):
@@ -249,6 +271,25 @@ def render_value_drivers_section():
     
     for driver in drivers:
         st.markdown(driver)
+
+
+def render_unlock_guidance_section(core):
+    """Render actionable guidance for unlocking valuation methods"""
+    
+    st.markdown("### 👉 How to Improve Your Valuation")
+    
+    guidance = generate_unlock_guidance(core)
+    
+    if guidance:
+        for guide_item in guidance:
+            if guide_item.startswith("**"):
+                st.markdown(guide_item)
+            else:
+                st.markdown(guide_item)
+    else:
+        st.success("✅ All valuation methods unlocked - focus on scaling!")
+    
+    st.caption("💡 *These recommendations help unlock advanced valuation methods and improve your business value*")
 
 
 def render_integration_hook(core):

@@ -4,6 +4,91 @@ Multi-method valuation calculations with progressive unlock
 """
 
 
+UNLOCK_RULES = {
+    "revenue_multiple": {
+        "requirements": ["revenue > 0"],
+        "label": "Requires revenue",
+        "conditions": {
+            "revenue": {"threshold": 0, "operator": ">", "display": "Revenue detected"}
+        }
+    },
+    "earnings_multiple": {
+        "requirements": ["profit > 0"],
+        "label": "Requires positive profit",
+        "conditions": {
+            "profit": {"threshold": 0, "operator": ">", "display": "Profit must be positive"}
+        }
+    },
+    "weighted_value": {
+        "requirements": ["revenue > 0", "profit > 0"],
+        "label": "Requires revenue and profit",
+        "conditions": {
+            "revenue": {"threshold": 0, "operator": ">", "display": "Revenue detected"},
+            "profit": {"threshold": 0, "operator": ">", "display": "Profit must be positive"}
+        }
+    },
+    "dcf": {
+        "requirements": ["future_implementation"],
+        "label": "Future implementation",
+        "conditions": {}
+    },
+    "industry_comps": {
+        "requirements": ["future_implementation"],
+        "label": "Future implementation",
+        "conditions": {}
+    }
+}
+
+
+def evaluate_unlock_conditions(core_financials):
+    """
+    Evaluate which unlock conditions are met
+    
+    Args:
+        core_financials: Dict with revenue, profit, etc.
+    
+    Returns:
+        dict: Condition name -> bool (met/not met)
+    """
+    revenue = core_financials.get("revenue", 0)
+    profit = core_financials.get("profit", 0)
+    
+    return {
+        "revenue": revenue > 0,
+        "profit": profit > 0,
+        "has_revenue": revenue > 0,
+        "has_profit": profit > 0,
+        "is_profitable": profit > 0,
+        "has_scale": revenue >= 50000
+    }
+
+
+def calculate_valuation_readiness_score(core_financials):
+    """
+    Calculate valuation readiness score (0-100%)
+    
+    Args:
+        core_financials: Dict with revenue, profit, growth_rate
+    
+    Returns:
+        float: Readiness score (0-100)
+    """
+    conditions = evaluate_unlock_conditions(core_financials)
+    
+    total_conditions = 2  # revenue and profit are the core conditions
+    met_conditions = 0
+    
+    if conditions["revenue"]:
+        met_conditions += 1
+    
+    if conditions["profit"]:
+        met_conditions += 1
+    
+    score = (met_conditions / total_conditions) * 100
+    
+    return score
+
+
 def calculate_valuation_completeness(core_financials):
     """
     Calculate valuation completeness score based on available data
@@ -186,6 +271,61 @@ def generate_valuation_insights(core_financials):
     return insights
 
 
+def generate_unlock_guidance(core_financials):
+    """
+    Generate actionable guidance for unlocking valuation methods
+    
+    Args:
+        core_financials: Dict with revenue, profit, expenses
+    
+    Returns:
+        list: Guidance strings with specific actions
+    """
+    guidance = []
+    
+    revenue = core_financials.get("revenue", 0)
+    profit = core_financials.get("profit", 0)
+    expenses = core_financials.get("expenses", 0)
+    
+    if profit <= 0:
+        guidance.append("**To unlock Earnings-Based Valuation:**")
+        
+        if revenue > 0 and expenses > 0:
+            margin_gap = abs(profit)
+            guidance.append(f"   • Reduce expenses by ${margin_gap:,.0f}/month to reach breakeven")
+            
+            if revenue > 0:
+                needed_revenue = expenses - revenue
+                guidance.append(f"   • OR increase revenue by ${needed_revenue:,.0f}/month to reach breakeven")
+        
+        guidance.append("   • Focus on improving profit margins")
+        guidance.append("   • Review and optimize operating expenses")
+        guidance.append("   • Consider pricing strategy adjustments")
+    
+    if revenue < 50000 and revenue > 0:
+        guidance.append("**To improve valuation range:**")
+        guidance.append("   • Scale revenue to $50K+/month for stronger valuation")
+        guidance.append("   • Expand customer base or increase average transaction size")
+        guidance.append("   • Explore new revenue streams or market segments")
+    
+    if revenue > 0 and profit > 0:
+        profit_margin = (profit / revenue) * 100
+        
+        if profit_margin < 20:
+            guidance.append("**To maximize valuation:**")
+            guidance.append(f"   • Current margin: {profit_margin:.1f}% - aim for 20%+ for premium multiples")
+            guidance.append("   • Improve operational efficiency")
+            guidance.append("   • Optimize pricing and cost structure")
+    
+    if not guidance:
+        guidance.append("**Excellent progress!**")
+        guidance.append("   • All core valuation methods unlocked")
+        guidance.append("   • Focus on scaling revenue and maintaining margins")
+        guidance.append("   • Consider growth strategies to increase valuation multiples")
+    
+    return guidance
+
+
 def calculate_scenario_valuation(core_financials, margin_improvement=0.2):
     """
     Calculate scenario valuation with improved margins
@@ -223,6 +363,67 @@ def get_value_drivers():
     ]
 
 
+def get_method_status_detailed(core_financials):
+    """
+    Get detailed status of all valuation methods with unlock conditions
+    
+    Args:
+        core_financials: Dict with financial data
+    
+    Returns:
+        dict: Method name -> dict with status details
+    """
+    revenue = core_financials.get("revenue", 0)
+    profit = core_financials.get("profit", 0)
+    conditions = evaluate_unlock_conditions(core_financials)
+    
+    return {
+        "Revenue Multiple": {
+            "available": revenue > 0,
+            "icon": "✅" if revenue > 0 else "🔒",
+            "description": "Value based on revenue multiples (1.5x - 4.0x annual revenue)",
+            "conditions": [
+                {"met": conditions["revenue"], "label": "Revenue detected"}
+            ],
+            "unlock_guidance": "Enter monthly revenue in Financial Modeler to unlock this method."
+        },
+        "Earnings Multiple": {
+            "available": profit > 0,
+            "icon": "✅" if profit > 0 else "🔒",
+            "description": "Value based on profit multiples (3x - 6x annual profit)",
+            "conditions": [
+                {"met": conditions["revenue"], "label": "Revenue detected"},
+                {"met": conditions["profit"], "label": "Profit must be positive"}
+            ],
+            "unlock_guidance": "Achieve positive profit by increasing revenue or reducing expenses."
+        },
+        "Weighted Value": {
+            "available": revenue > 0 and profit > 0,
+            "icon": "✅" if (revenue > 0 and profit > 0) else "🔒",
+            "description": "Combined valuation using multiple methods",
+            "conditions": [
+                {"met": conditions["revenue"], "label": "Revenue detected"},
+                {"met": conditions["profit"], "label": "Profit must be positive"}
+            ],
+            "unlock_guidance": "Unlock both Revenue and Earnings methods to access weighted valuation."
+        },
+        "DCF": {
+            "available": False,
+            "icon": "🔒",
+            "description": "Discounted Cash Flow (Future implementation)",
+            "conditions": [],
+            "unlock_guidance": "Coming in future release - advanced cash flow projection method."
+        },
+        "Industry Comps": {
+            "available": False,
+            "icon": "🔒",
+            "description": "Industry comparables (Future implementation)",
+            "conditions": [],
+            "unlock_guidance": "Coming in future release - industry benchmark comparison."
+        }
+    }
+
+
 def get_method_status(core_financials):
     """
     Get status of all valuation methods
@@ -244,12 +445,12 @@ def get_method_status(core_financials):
         ),
         "Earnings Multiple": (
             profit > 0,
-            "✅" if profit > 0 else "🔓",
+            "✅" if profit > 0 else "�",
             "Value based on profit multiples (3x - 6x annual profit)"
         ),
         "Weighted Value": (
             revenue > 0 and profit > 0,
-            "✅" if (revenue > 0 and profit > 0) else "🔓",
+            "✅" if (revenue > 0 and profit > 0) else "�",
             "Combined valuation using multiple methods"
         ),
         "DCF": (
