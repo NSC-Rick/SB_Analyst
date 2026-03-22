@@ -13,8 +13,10 @@ from src.ui.placeholders import render_placeholder
 from src.modules.idea_screener import render_idea_screener
 from src.modules.financial_modeler_lite import render_financial_modeler_lite
 from src.modules.financial_modeler_pro import render_financial_modeler_pro
+from src.modules.project_evaluator import render_project_evaluator
 from src.modules.loc_analyzer import render_loc_analyzer
 from src.modules.valuation_engine import render_business_valuation
+from src.modules.insights_engine import render_insights_engine
 from src.modules.insights_panel import render_insights_panel
 
 
@@ -114,12 +116,16 @@ def render_main_content():
         render_financial_modeler_lite()
     elif active_module == "Financial Modeler Pro":
         render_financial_modeler_pro()
+    elif active_module == "Project Evaluator":
+        render_project_evaluator()
     elif active_module == "Business Valuation":
         render_business_valuation()
     elif active_module == "LOC Analyzer":
         render_loc_analyzer()
     elif active_module == "Funding Engine":
         render_funding_engine()
+    elif active_module == "Insights Engine":
+        render_insights_engine()
     elif active_module == "Insights":
         render_insights_panel()
     else:

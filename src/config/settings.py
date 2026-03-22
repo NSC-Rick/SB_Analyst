@@ -45,15 +45,16 @@ MODULE_CONFIG = {
                 {"name": "Business Valuation", "icon": "", "implemented": True},
                 {"name": "LOC Analyzer", "icon": "", "implemented": True},
                 {"name": "Funding Engine", "icon": "", "implemented": True},
-                {"name": "Insights Engine", "icon": "", "implemented": False},
-                {"name": "LOC Analyzer", "icon": "�", "implemented": True},
-                {"name": "Funding Engine", "icon": "🏦", "implemented": True},
-                {"name": "Insights Engine", "icon": "🧠", "implemented": False},
+                {"name": "Insights Engine", "icon": "", "implemented": True},
+                {"name": "LOC Analyzer", "icon": "", "implemented": True},
+                {"name": "Funding Engine", "icon": "", "implemented": True},
+                {"name": "Insights Engine", "icon": "", "implemented": True},
             ]
         },
         "planning": {
             "title": "PLANNING",
             "modules": [
+                {"name": "Project Evaluator", "icon": "🎯", "implemented": True},
                 {"name": "Business Plan Builder", "icon": "📊", "implemented": False},
                 {"name": "Growth Scenario Planner", "icon": "📈", "implemented": False},
                 {"name": "Workforce / RPLH Analyzer", "icon": "👥", "implemented": False},
