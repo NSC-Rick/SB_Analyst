@@ -40,6 +40,8 @@ def render_inputs_section():
         idea_ctx = st.session_state["idea_context"]
         st.info(f"💡 **Idea:** {idea_ctx['idea_title']} | **Viability Score:** {idea_ctx['viability_score']}/100")
     
+    st.markdown('<div class="ns-card">', unsafe_allow_html=True)
+    
     sync_status = get_sync_status()
     if sync_status["has_data"] and sync_status["source_module"] == "financial_modeler_pro":
         st.caption("💎 *Using values from Financial Modeler Pro*")

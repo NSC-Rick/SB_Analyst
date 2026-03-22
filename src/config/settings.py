@@ -25,12 +25,18 @@ THEME_CONFIG = {
 }
 
 MODULE_CONFIG = {
-    "default_module": "Idea Screener",
+    "default_module": "Command Center",
     "available_modules": {
         "lite": ["Financial Modeler Lite"],
         "advisor": ["Financial Modeler Lite", "Cash Flow Engine", "Valuation Engine", "Business Plan Builder"],
     },
     "module_groups": {
+        "home": {
+            "title": "HOME",
+            "modules": [
+                {"name": "Command Center", "icon": "🏠", "implemented": True},
+            ]
+        },
         "active_tools": {
             "title": "ACTIVE TOOLS",
             "modules": [
