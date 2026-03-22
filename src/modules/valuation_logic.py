@@ -1,208 +1,164 @@
 """
-North Star Unified Shell - Valuation Logic Module
-Progressive unlock valuation system with tiered methods
+North Star Unified Shell - Business Valuation Logic
+Multi-method valuation calculations with progressive unlock
 """
 
 
-class ValuationTier:
-    """Represents a valuation method tier with unlock conditions"""
-    
-    def __init__(self, name, description, required_fields, icon_locked, icon_unlocked):
-        self.name = name
-        self.description = description
-        self.required_fields = required_fields
-        self.icon_locked = icon_locked
-        self.icon_unlocked = icon_unlocked
-    
-    def is_unlocked(self, data):
-        """Check if this tier is unlocked based on available data"""
-        for field in self.required_fields:
-            if field not in data or data[field] is None or data[field] == 0:
-                return False
-        return True
-
-
-VALUATION_TIERS = {
-    "revenue_multiple": ValuationTier(
-        name="Revenue Multiple",
-        description="Value based on revenue multiples (1.5x - 4.0x)",
-        required_fields=["revenue"],
-        icon_locked="🔒",
-        icon_unlocked="✅"
-    ),
-    "earnings_multiple": ValuationTier(
-        name="Earnings Multiple",
-        description="Value based on profit multiples (3x - 6x)",
-        required_fields=["profit"],
-        icon_locked="🔓",
-        icon_unlocked="✅"
-    ),
-    "weighted_value": ValuationTier(
-        name="Weighted Value",
-        description="Combined valuation using multiple methods",
-        required_fields=["revenue", "profit"],
-        icon_locked="🔒",
-        icon_unlocked="✅"
-    ),
-    "dcf": ValuationTier(
-        name="Discounted Cash Flow (DCF)",
-        description="Advanced cash flow-based valuation",
-        required_fields=["revenue", "profit", "growth_rate", "cash_flow"],
-        icon_locked="🔒",
-        icon_unlocked="✅"
-    )
-}
-
-
-def calculate_completion_score(data):
+def calculate_valuation_completeness(core_financials):
     """
-    Calculate valuation readiness score based on data completeness
+    Calculate valuation completeness score based on available data
     
     Args:
-        data: Dictionary with revenue, expenses, profit, etc.
+        core_financials: Dict with revenue, profit, growth_rate
     
     Returns:
-        int: Completion score (0-100)
+        int: Completeness score (0-100)
     """
     score = 0
     
-    if data.get("revenue") and data["revenue"] > 0:
+    if core_financials.get("revenue", 0) > 0:
         score += 40
     
-    if data.get("expenses") and data["expenses"] > 0:
-        score += 30
+    if core_financials.get("profit", 0) > 0:
+        score += 40
     
-    if data.get("profit") is not None:
-        score += 30
+    if core_financials.get("growth_rate", 0) > 0:
+        score += 20
     
-    return min(score, 100)
+    return score
 
 
-def calculate_revenue_multiple(revenue):
+def is_method_available(method_name, core_financials):
     """
-    Calculate valuation using revenue multiple method
+    Check if a valuation method is available based on data
     
     Args:
-        revenue: Annual or monthly revenue
+        method_name: Name of valuation method
+        core_financials: Dict with financial data
     
     Returns:
-        dict: {"low": float, "high": float, "method": str}
+        bool: True if method is available
     """
-    low_multiple = 1.5
-    high_multiple = 4.0
+    revenue = core_financials.get("revenue", 0)
+    profit = core_financials.get("profit", 0)
     
-    return {
-        "low": revenue * low_multiple,
-        "high": revenue * high_multiple,
-        "method": "Revenue Multiple",
-        "multiple_range": f"{low_multiple}x - {high_multiple}x"
-    }
+    if method_name == "revenue_multiple":
+        return revenue > 0
+    
+    elif method_name == "earnings_multiple":
+        return profit > 0
+    
+    elif method_name == "weighted_value":
+        return revenue > 0 and profit > 0
+    
+    elif method_name in ["dcf", "industry_comps", "pre_revenue"]:
+        return False  # Locked for future implementation
+    
+    return False
 
 
-def calculate_earnings_multiple(profit):
+def calculate_revenue_multiple_valuation(revenue):
     """
-    Calculate valuation using earnings multiple method
+    Calculate valuation using revenue multiples
     
     Args:
-        profit: Annual or monthly profit
+        revenue: Monthly revenue
     
     Returns:
-        dict: {"low": float, "high": float, "method": str}
+        tuple: (low_value, high_value)
     """
-    low_multiple = 3.0
-    high_multiple = 6.0
+    annual_revenue = revenue * 12
     
-    return {
-        "low": profit * low_multiple,
-        "high": profit * high_multiple,
-        "method": "Earnings Multiple",
-        "multiple_range": f"{low_multiple}x - {high_multiple}x"
-    }
+    low = annual_revenue * 1.5
+    high = annual_revenue * 4.0
+    
+    return (low, high)
 
 
-def calculate_weighted_value(revenue, profit):
+def calculate_earnings_multiple_valuation(profit):
     """
-    Calculate weighted average valuation (future implementation)
+    Calculate valuation using earnings/profit multiples
     
     Args:
-        revenue: Annual or monthly revenue
-        profit: Annual or monthly profit
+        profit: Monthly profit
     
     Returns:
-        dict: {"low": float, "high": float, "method": str}
+        tuple: (low_value, high_value)
     """
-    revenue_val = calculate_revenue_multiple(revenue)
-    earnings_val = calculate_earnings_multiple(profit)
+    annual_profit = profit * 12
     
-    weight_revenue = 0.4
-    weight_earnings = 0.6
+    low = annual_profit * 3.0
+    high = annual_profit * 6.0
     
-    low = (revenue_val["low"] * weight_revenue) + (earnings_val["low"] * weight_earnings)
-    high = (revenue_val["high"] * weight_revenue) + (earnings_val["high"] * weight_earnings)
-    
-    return {
-        "low": low,
-        "high": high,
-        "method": "Weighted Average",
-        "weights": f"Revenue {weight_revenue*100:.0f}% / Earnings {weight_earnings*100:.0f}%"
-    }
+    return (low, high)
 
 
-def get_available_methods(data):
+def calculate_weighted_valuation(revenue, profit):
     """
-    Get list of available valuation methods based on data
+    Calculate weighted average valuation combining revenue and earnings methods
     
     Args:
-        data: Dictionary with revenue, expenses, profit, etc.
+        revenue: Monthly revenue
+        profit: Monthly profit
     
     Returns:
-        list: Available method names
+        tuple: (low_value, high_value)
     """
-    available = []
+    rev_low, rev_high = calculate_revenue_multiple_valuation(revenue)
+    earn_low, earn_high = calculate_earnings_multiple_valuation(profit)
     
-    for method_key, tier in VALUATION_TIERS.items():
-        if tier.is_unlocked(data):
-            available.append(method_key)
+    weighted_low = (rev_low + earn_low) / 2
+    weighted_high = (rev_high + earn_high) / 2
     
-    return available
+    return (weighted_low, weighted_high)
 
 
-def get_locked_methods(data):
+def calculate_primary_valuation(core_financials):
     """
-    Get list of locked valuation methods with unlock requirements
+    Calculate primary valuation range based on available data
     
     Args:
-        data: Dictionary with revenue, expenses, profit, etc.
+        core_financials: Dict with revenue, profit, etc.
     
     Returns:
-        list: Tuples of (method_name, missing_fields)
+        tuple: (low_value, high_value, method_used)
     """
-    locked = []
+    revenue = core_financials.get("revenue", 0)
+    profit = core_financials.get("profit", 0)
     
-    for method_key, tier in VALUATION_TIERS.items():
-        if not tier.is_unlocked(data):
-            missing = [field for field in tier.required_fields 
-                      if field not in data or data[field] is None or data[field] == 0]
-            locked.append((tier.name, missing))
+    if revenue > 0 and profit > 0:
+        low, high = calculate_weighted_valuation(revenue, profit)
+        return (low, high, "Weighted Value")
     
-    return locked
+    elif profit > 0:
+        low, high = calculate_earnings_multiple_valuation(profit)
+        return (low, high, "Earnings Multiple")
+    
+    elif revenue > 0:
+        low, high = calculate_revenue_multiple_valuation(revenue)
+        return (low, high, "Revenue Multiple")
+    
+    return (0, 0, "Insufficient Data")
 
 
-def generate_valuation_insights(data, valuations):
+def generate_valuation_insights(core_financials):
     """
-    Generate insights based on valuation results
+    Generate insights based on financial data
     
     Args:
-        data: Input data dictionary
-        valuations: List of valuation results
+        core_financials: Dict with revenue, profit, expenses, growth_rate
     
     Returns:
         list: Insight strings
     """
     insights = []
     
-    if data.get("profit") and data.get("revenue"):
-        profit_margin = (data["profit"] / data["revenue"]) * 100
+    revenue = core_financials.get("revenue", 0)
+    profit = core_financials.get("profit", 0)
+    growth_rate = core_financials.get("growth_rate", 0)
+    
+    if revenue > 0 and profit > 0:
+        profit_margin = (profit / revenue) * 100
         
         if profit_margin > 20:
             insights.append("💎 Strong profit margins (>20%) support higher valuation multiples and investor appeal.")
@@ -211,62 +167,99 @@ def generate_valuation_insights(data, valuations):
         else:
             insights.append("⚠️ Low profit margins may constrain valuation. Focus on margin improvement strategies.")
     
-    if data.get("revenue"):
-        if data["revenue"] < 100000:
+    if revenue > 0:
+        if revenue < 100000:
             insights.append("📈 Limited revenue scale may constrain current valuation. Growth can significantly increase value.")
-        elif data["revenue"] > 1000000:
+        elif revenue > 1000000:
             insights.append("🚀 Strong revenue base provides solid foundation for valuation and growth potential.")
     
-    if data.get("profit") and data["profit"] > 0:
+    if profit > 0:
         insights.append("✅ Positive profitability unlocks earnings-based valuation methods and increases investor confidence.")
-    elif data.get("profit") and data["profit"] < 0:
+    elif profit < 0:
         insights.append("💡 Current losses limit valuation options. Path to profitability is critical for value creation.")
     
-    if len(valuations) > 1:
-        values = [v["high"] for v in valuations]
-        if max(values) / min(values) > 2:
-            insights.append("🔍 Wide valuation range suggests different methods weight factors differently. Consider multiple perspectives.")
+    if growth_rate > 0.15:
+        insights.append("🚀 Strong growth rate (>15%/month) supports higher valuation multiples.")
+    elif growth_rate > 0:
+        insights.append("📈 Positive growth trajectory adds value beyond current performance.")
     
     return insights
 
 
+def calculate_scenario_valuation(core_financials, margin_improvement=0.2):
+    """
+    Calculate scenario valuation with improved margins
+    
+    Args:
+        core_financials: Dict with revenue, profit, expenses
+        margin_improvement: Decimal improvement (0.2 = 20% improvement)
+    
+    Returns:
+        tuple: (scenario_low, scenario_high) or None if not applicable
+    """
+    profit = core_financials.get("profit", 0)
+    
+    if profit <= 0:
+        return None
+    
+    improved_profit = profit * (1 + margin_improvement)
+    
+    low, high = calculate_earnings_multiple_valuation(improved_profit)
+    
+    return (low, high)
+
+
 def get_value_drivers():
     """
-    Get list of key value drivers for education
+    Get list of key value drivers
     
     Returns:
         list: Value driver descriptions
     """
     return [
-        "📈 **Revenue Growth**: Increasing revenue directly expands valuation range across all methods",
-        "💰 **Profitability**: Strong margins significantly increase earnings-based valuations",
-        "📊 **Margin Improvement**: Even small margin gains can dramatically increase business value",
-        "🎯 **Consistency**: Stable, predictable performance commands higher multiples",
-        "🚀 **Growth Trajectory**: Demonstrated growth potential increases investor confidence and multiples"
+        "📈 **Revenue Scale**: Increasing revenue directly expands valuation range",
+        "💰 **Profit Margin**: Strong margins significantly increase earnings-based valuations",
+        "🚀 **Growth Rate**: Demonstrated growth potential increases investor confidence and multiples"
     ]
 
 
-def get_unlock_guidance(missing_fields):
+def get_method_status(core_financials):
     """
-    Get user-friendly guidance for unlocking methods
+    Get status of all valuation methods
     
     Args:
-        missing_fields: List of missing field names
+        core_financials: Dict with financial data
     
     Returns:
-        str: Guidance message
+        dict: Method name -> (available, icon, description)
     """
-    field_map = {
-        "revenue": "revenue data",
-        "profit": "profit/earnings data (complete expense inputs)",
-        "expenses": "expense data",
-        "growth_rate": "growth rate projections",
-        "cash_flow": "cash flow information"
+    revenue = core_financials.get("revenue", 0)
+    profit = core_financials.get("profit", 0)
+    
+    return {
+        "Revenue Multiple": (
+            revenue > 0,
+            "✅" if revenue > 0 else "🔒",
+            "Value based on revenue multiples (1.5x - 4.0x annual revenue)"
+        ),
+        "Earnings Multiple": (
+            profit > 0,
+            "✅" if profit > 0 else "🔓",
+            "Value based on profit multiples (3x - 6x annual profit)"
+        ),
+        "Weighted Value": (
+            revenue > 0 and profit > 0,
+            "✅" if (revenue > 0 and profit > 0) else "🔓",
+            "Combined valuation using multiple methods"
+        ),
+        "DCF": (
+            False,
+            "🔒",
+            "Discounted Cash Flow (Future implementation)"
+        ),
+        "Industry Comps": (
+            False,
+            "🔒",
+            "Industry comparables (Future implementation)"
+        )
     }
-    
-    readable_fields = [field_map.get(f, f) for f in missing_fields]
-    
-    if len(readable_fields) == 1:
-        return f"Add {readable_fields[0]} to unlock this method"
-    else:
-        return f"Add {', '.join(readable_fields)} to unlock this method"

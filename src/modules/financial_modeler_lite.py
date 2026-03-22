@@ -5,7 +5,11 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime
-from src.modules.valuation_engine import render_valuation_engine
+from src.state.financial_state import (
+    get_core_financials,
+    sync_from_lite,
+    get_sync_status
+)
 
 
 def render_financial_modeler_lite():
@@ -15,7 +19,7 @@ def render_financial_modeler_lite():
     st.markdown("*Core financial analysis and scenario modeling for small businesses*")
     st.divider()
     
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 Model Inputs", "📈 Analysis", "💡 Insights", "💎 Valuation"])
+    tab1, tab2, tab3 = st.tabs(["📊 Model Inputs", "📈 Analysis", "💡 Insights"])
     
     with tab1:
         render_inputs_section()
@@ -25,41 +29,48 @@ def render_financial_modeler_lite():
     
     with tab3:
         render_insights_section()
-    
-    with tab4:
-        render_valuation_engine()
 
 
 def render_inputs_section():
     """Render the inputs section"""
     st.markdown("### Business Financial Inputs")
     
+    sync_status = get_sync_status()
+    if sync_status["has_data"] and sync_status["source_module"] == "financial_modeler_pro":
+        st.caption("💎 *Using values from Financial Modeler Pro*")
+    
+    core = get_core_financials()
+    
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown("#### Revenue Assumptions")
         
+        default_revenue = int(core.get("revenue", 50000)) if core.get("revenue", 0) > 0 else 50000
         monthly_revenue = st.number_input(
             "Current Monthly Revenue ($)",
             min_value=0,
-            value=50000,
+            value=default_revenue,
             step=1000,
             help="Enter your average monthly revenue"
         )
         
+        default_growth = core.get("growth_rate", 0.05) * 100
         revenue_growth = st.slider(
             "Expected Monthly Growth Rate (%)",
             min_value=-10.0,
             max_value=20.0,
-            value=5.0,
+            value=float(default_growth),
             step=0.5,
             help="Expected month-over-month revenue growth"
         )
         
+        default_months = core.get("projection_months", 12)
+        default_index = [3, 6, 12, 24].index(default_months) if default_months in [3, 6, 12, 24] else 2
         projection_months = st.selectbox(
             "Projection Period (Months)",
             options=[3, 6, 12, 24],
-            index=2,
+            index=default_index,
             help="How far ahead to project"
         )
     
@@ -75,10 +86,11 @@ def render_inputs_section():
             help="COGS as percentage of revenue"
         )
         
+        default_fixed = int(core.get("fixed_costs", 20000)) if core.get("fixed_costs", 0) > 0 else 20000
         fixed_costs = st.number_input(
             "Monthly Fixed Costs ($)",
             min_value=0,
-            value=20000,
+            value=default_fixed,
             step=1000,
             help="Rent, salaries, utilities, etc."
         )
@@ -107,6 +119,7 @@ def render_inputs_section():
     st.divider()
     
     if st.button("🔄 Run Financial Model", type="primary", use_container_width=True):
+        sync_from_lite(st.session_state.fm_inputs)
         st.success("✓ Model updated successfully")
         st.rerun()
 

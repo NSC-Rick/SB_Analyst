@@ -6,6 +6,11 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from src.state.financial_state import (
+    get_core_financials,
+    sync_from_pro,
+    get_sync_status
+)
 
 
 def render_financial_modeler_pro():
@@ -33,6 +38,10 @@ def render_pro_inputs():
     st.markdown("### 🎯 Advanced Business Financial Inputs")
     st.caption("Build detailed financial projections with multiple revenue streams and granular cost modeling")
     
+    sync_status = get_sync_status()
+    if sync_status["has_data"] and sync_status["source_module"] == "financial_modeler_lite":
+        st.caption("💰 *Using baseline from Financial Modeler Lite*")
+    
     st.divider()
     
     revenue_section()
@@ -52,6 +61,13 @@ def render_pro_inputs():
     st.divider()
     
     if st.button("🔄 Run Pro Financial Model", type="primary", use_container_width=True):
+        if validate_pro_inputs():
+            sync_from_pro(
+                st.session_state.pro_revenue_streams,
+                st.session_state.pro_costs,
+                st.session_state.pro_labor,
+                st.session_state.pro_assumptions
+            )
         st.success("✓ Pro model updated successfully")
         st.rerun()
 

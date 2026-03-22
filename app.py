@@ -12,7 +12,8 @@ from src.ui.shell import render_shell
 from src.ui.placeholders import render_placeholder
 from src.modules.financial_modeler_lite import render_financial_modeler_lite
 from src.modules.financial_modeler_pro import render_financial_modeler_pro
-from src.modules.valuation_logic import calculate_revenue_multiple, calculate_earnings_multiple
+from src.modules.loc_analyzer import render_loc_analyzer
+from src.modules.valuation_engine import render_business_valuation
 from src.modules.insights_panel import render_insights_panel
 
 
@@ -110,8 +111,10 @@ def render_main_content():
         render_financial_modeler_lite()
     elif active_module == "Financial Modeler Pro":
         render_financial_modeler_pro()
-    elif active_module == "Value Engine":
-        render_value_engine()
+    elif active_module == "Business Valuation":
+        render_business_valuation()
+    elif active_module == "LOC Analyzer":
+        render_loc_analyzer()
     elif active_module == "Funding Engine":
         render_funding_engine()
     elif active_module == "Insights":

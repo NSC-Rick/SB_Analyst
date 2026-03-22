@@ -42,7 +42,8 @@ MODULE_CONFIG = {
         "intelligence": {
             "title": "INTELLIGENCE",
             "modules": [
-                {"name": "Value Engine", "icon": "💎", "implemented": True},
+                {"name": "Business Valuation", "icon": "�", "implemented": True},
+                {"name": "LOC Analyzer", "icon": "�", "implemented": True},
                 {"name": "Funding Engine", "icon": "🏦", "implemented": True},
                 {"name": "Insights Engine", "icon": "🧠", "implemented": False},
             ]
@@ -74,7 +75,7 @@ MODULE_CONFIG = {
 
 FEATURE_FLAGS = {
     "show_mode_toggle": True,
-    "show_client_selector": True,
+    "show_client_selector": False,
     "show_upgrade_prompt": True,
     "show_insights_panel": True,
     "enable_advisor_mode": False,
