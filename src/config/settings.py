@@ -35,12 +35,11 @@ MODULE_CONFIG = {
             "title": "ACTIVE TOOLS",
             "modules": [
                 {"name": "Idea Screener", "icon": "", "implemented": True},
+                {"name": "Entity Assistant", "icon": "🏛️", "implemented": True},
                 {"name": "Financial Modeler Lite", "icon": "", "implemented": True},
                 {"name": "Financial Modeler Pro", "icon": "", "implemented": True},
                 {"name": "LOC Analyzer", "icon": "", "implemented": True},
                 {"name": "Business Valuation", "icon": "", "implemented": True},
-                
-                
             ]
         },
         "intelligence": {
@@ -55,9 +54,9 @@ MODULE_CONFIG = {
             "title": "PLANNING",
             "modules": [
                 {"name": "Project Evaluator", "icon": "🎯", "implemented": True},
-                {"name": "Business Plan Builder", "icon": "📊", "implemented": False},
+                {"name": "Business Plan Assistant", "icon": "📊", "implemented": False},
                 {"name": "Growth Scenario Planner", "icon": "📈", "implemented": False},
-                {"name": "Workforce / RPLH Analyzer", "icon": "👥", "implemented": False},
+                {"name": "Labor Analyzer", "icon": "👥", "implemented": False},
             ]
         },
         "system": {

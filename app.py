@@ -11,6 +11,7 @@ from src.state.app_state import initialize_state, get_active_module
 from src.ui.shell import render_shell
 from src.ui.placeholders import render_placeholder
 from src.modules.idea_screener import render_idea_screener
+from src.modules.entity_assistant import render_entity_assistant
 from src.modules.financial_modeler_lite import render_financial_modeler_lite
 from src.modules.financial_modeler_pro import render_financial_modeler_pro
 from src.modules.project_evaluator import render_project_evaluator
@@ -112,6 +113,8 @@ def render_main_content():
     
     if active_module == "Idea Screener":
         render_idea_screener()
+    elif active_module == "Entity Assistant":
+        render_entity_assistant()
     elif active_module == "Financial Modeler Lite":
         render_financial_modeler_lite()
     elif active_module == "Financial Modeler Pro":
