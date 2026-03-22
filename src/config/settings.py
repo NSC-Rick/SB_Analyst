@@ -34,15 +34,18 @@ MODULE_CONFIG = {
         "active_tools": {
             "title": "ACTIVE TOOLS",
             "modules": [
-                {"name": "Idea Screener", "icon": "�", "implemented": False},
-                {"name": "Financial Modeler Lite", "icon": "�", "implemented": True},
-                {"name": "Financial Modeler Pro", "icon": "�", "implemented": True},
+                {"name": "Idea Screener", "icon": "", "implemented": True},
+                {"name": "Financial Modeler Lite", "icon": "", "implemented": True},
+                {"name": "Financial Modeler Pro", "icon": "", "implemented": True},
             ]
         },
         "intelligence": {
             "title": "INTELLIGENCE",
             "modules": [
-                {"name": "Business Valuation", "icon": "�", "implemented": True},
+                {"name": "Business Valuation", "icon": "", "implemented": True},
+                {"name": "LOC Analyzer", "icon": "", "implemented": True},
+                {"name": "Funding Engine", "icon": "", "implemented": True},
+                {"name": "Insights Engine", "icon": "", "implemented": False},
                 {"name": "LOC Analyzer", "icon": "�", "implemented": True},
                 {"name": "Funding Engine", "icon": "🏦", "implemented": True},
                 {"name": "Insights Engine", "icon": "🧠", "implemented": False},

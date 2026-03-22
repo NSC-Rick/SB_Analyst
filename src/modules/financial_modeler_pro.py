@@ -38,6 +38,11 @@ def render_pro_inputs():
     st.markdown("### 🎯 Advanced Business Financial Inputs")
     st.caption("Build detailed financial projections with multiple revenue streams and granular cost modeling")
     
+    # Show idea context if available
+    if "idea_context" in st.session_state:
+        idea_ctx = st.session_state["idea_context"]
+        st.info(f"💡 **Idea:** {idea_ctx['idea_title']} | **Viability Score:** {idea_ctx['viability_score']}/100")
+    
     sync_status = get_sync_status()
     if sync_status["has_data"] and sync_status["source_module"] == "financial_modeler_lite":
         st.caption("💰 *Using baseline from Financial Modeler Lite*")

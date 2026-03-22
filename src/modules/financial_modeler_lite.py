@@ -35,6 +35,11 @@ def render_inputs_section():
     """Render the inputs section"""
     st.markdown("### Business Financial Inputs")
     
+    # Show idea context if available
+    if "idea_context" in st.session_state:
+        idea_ctx = st.session_state["idea_context"]
+        st.info(f"💡 **Idea:** {idea_ctx['idea_title']} | **Viability Score:** {idea_ctx['viability_score']}/100")
+    
     sync_status = get_sync_status()
     if sync_status["has_data"] and sync_status["source_module"] == "financial_modeler_pro":
         st.caption("💎 *Using values from Financial Modeler Pro*")

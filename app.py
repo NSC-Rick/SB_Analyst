@@ -10,6 +10,7 @@ from src.config.settings import UI_CONFIG, MODULE_CONFIG
 from src.state.app_state import initialize_state, get_active_module
 from src.ui.shell import render_shell
 from src.ui.placeholders import render_placeholder
+from src.modules.idea_screener import render_idea_screener
 from src.modules.financial_modeler_lite import render_financial_modeler_lite
 from src.modules.financial_modeler_pro import render_financial_modeler_pro
 from src.modules.loc_analyzer import render_loc_analyzer
@@ -107,7 +108,9 @@ def render_main_content():
     """Render the main content area based on active module"""
     active_module = get_active_module()
     
-    if active_module == "Financial Modeler Lite":
+    if active_module == "Idea Screener":
+        render_idea_screener()
+    elif active_module == "Financial Modeler Lite":
         render_financial_modeler_lite()
     elif active_module == "Financial Modeler Pro":
         render_financial_modeler_pro()
