@@ -36,9 +36,104 @@ def load_custom_css():
     apply_global_styles()
 
 
+def render_debug_panel():
+    """Render data integrity debug panel"""
+    from src.state.data_validator import validate_system_integrity
+    from src.state.financial_state import get_core_financials
+    
+    with st.expander("🔍 Data Integrity Debug Panel"):
+        st.markdown("### System State Overview")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### Core Financials")
+            core = get_core_financials()
+            st.json({
+                "revenue": core.get("revenue", 0),
+                "expenses": core.get("expenses", 0),
+                "profit": core.get("profit", 0),
+                "growth_rate": core.get("growth_rate", 0),
+                "source": core.get("source_module", "Not set")
+            })
+            
+            st.markdown("#### Valuation")
+            valuation = st.session_state.get("valuation_range")
+            if valuation:
+                st.json({"low": valuation[0], "high": valuation[1]})
+            else:
+                st.caption("Not calculated")
+            
+            st.markdown("#### LOC Recommendation")
+            loc = st.session_state.get("loc_recommendation")
+            if loc:
+                st.json({
+                    "amount": loc.get("recommended_amount", 0),
+                    "purpose": loc.get("purpose", "N/A")
+                })
+            else:
+                st.caption("Not analyzed")
+        
+        with col2:
+            st.markdown("#### Project Evaluation")
+            project = st.session_state.get("project_evaluation")
+            if project:
+                st.json({
+                    "score": project.get("overall_score", 0),
+                    "priority": project.get("priority_classification", "N/A")
+                })
+            else:
+                st.caption("Not evaluated")
+            
+            st.markdown("#### Idea Context")
+            idea = st.session_state.get("idea_context")
+            if idea:
+                st.json({
+                    "title": idea.get("idea_title", "N/A"),
+                    "score": idea.get("viability_score", 0)
+                })
+            else:
+                st.caption("Not screened")
+            
+            st.markdown("#### Entity Structure")
+            entity = st.session_state.get("entity_structure")
+            if entity:
+                st.json({"type": entity.get("entity_type", "N/A")})
+            else:
+                st.caption("Not selected")
+        
+        st.divider()
+        
+        st.markdown("### System Integrity Report")
+        report = validate_system_integrity(st.session_state)
+        
+        col3, col4, col5 = st.columns(3)
+        
+        with col3:
+            st.metric("Integrity Score", f"{report['integrity_score']}%")
+        
+        with col4:
+            st.metric("Valid Keys", len(report['valid_keys']))
+        
+        with col5:
+            st.metric("Missing Keys", len(report['missing_keys']))
+        
+        if report['missing_keys']:
+            st.warning(f"Missing: {', '.join(report['missing_keys'])}")
+        
+        if report['invalid_data']:
+            st.error(f"Invalid: {', '.join(report['invalid_data'])}")
+        
+        if report['integrity_score'] == 100:
+            st.success("✅ All data contracts validated successfully!")
+
+
 def render_main_content():
     """Render the main content area based on active module"""
     active_module = get_active_module()
+    
+    # Add debug panel at top
+    render_debug_panel()
     
     if active_module == "Command Center":
         render_command_center()

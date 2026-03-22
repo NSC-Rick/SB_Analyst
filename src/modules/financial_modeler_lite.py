@@ -17,6 +17,7 @@ def render_financial_modeler_lite():
     
     st.markdown("## 💰 Financial Modeler Lite")
     st.markdown("*Core financial analysis and scenario modeling for small businesses*")
+    st.caption("🔄 Synced with core financial state")
     st.divider()
     
     tab1, tab2, tab3 = st.tabs(["📊 Model Inputs", "📈 Analysis", "💡 Insights"])

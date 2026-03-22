@@ -3,22 +3,21 @@ Core Financial State Sync Layer
 Single source of truth for financial values across modules
 """
 import streamlit as st
+from src.state.data_validator import validate_core_financials
+from src.state.data_contracts import DEFAULT_CORE_FINANCIALS
 
 
-CORE_FINANCIAL_FIELDS = {
-    "revenue": 0.0,
-    "expenses": 0.0,
-    "profit": 0.0,
-    "growth_rate": 0.0,
+# Use default from data contracts
+CORE_FINANCIAL_FIELDS = DEFAULT_CORE_FINANCIALS.copy()
+CORE_FINANCIAL_FIELDS.update({
     "payroll": 0.0,
     "starting_cash": 0.0,
-    "projection_months": 12,
     "margin_percent": 0.0,
     "fixed_costs": 0.0,
     "variable_costs": 0.0,
     "source_module": None,
     "last_updated": None
-}
+})
 
 
 def initialize_financial_state():
@@ -75,7 +74,7 @@ def update_core_financial(key, value, source=None):
 
 def update_core_financials(data, source=None):
     """
-    Update multiple financial values in shared state
+    Update multiple financial values in shared state with validation
     
     Args:
         data: Dictionary of key-value pairs to update
@@ -83,7 +82,10 @@ def update_core_financials(data, source=None):
     """
     initialize_financial_state()
     
-    for key, value in data.items():
+    # Validate data before updating
+    validated_data = validate_core_financials(data)
+    
+    for key, value in validated_data.items():
         if key in st.session_state.core_financials:
             st.session_state.core_financials[key] = value
     

@@ -18,6 +18,7 @@ def render_financial_modeler_pro():
     
     st.markdown("## 💎 Financial Modeler Pro")
     st.markdown("*Advanced financial modeling with multi-stream revenue, detailed cost structure, and comprehensive projections*")
+    st.caption("🔄 Synced with core financial state")
     st.divider()
     
     tab1, tab2, tab3 = st.tabs(["📊 Inputs", "📈 Analysis", "💡 Insights"])

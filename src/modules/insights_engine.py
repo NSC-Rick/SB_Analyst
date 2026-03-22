@@ -23,6 +23,7 @@ def render_insights_engine():
     
     st.markdown("## 🧠 Insights Engine")
     st.markdown("*Cross-module intelligence and strategic recommendations*")
+    st.caption("🔄 Synced with all module states")
     st.divider()
     
     # Gather data from all modules

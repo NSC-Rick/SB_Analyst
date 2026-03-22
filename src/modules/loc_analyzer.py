@@ -24,6 +24,7 @@ def render_loc_analyzer():
     
     st.markdown("## 💳 LOC Analyzer (Cash Trough Engine)")
     st.markdown("*Identify cash flow gaps and determine working capital requirements*")
+    st.caption("🔄 Synced with core financial state")
     st.divider()
     
     tab1, tab2, tab3 = st.tabs(["📊 Analysis", "💡 Insights", "📋 Details"])
