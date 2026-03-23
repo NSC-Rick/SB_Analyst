@@ -3,7 +3,16 @@ Valuation Distribution Curve Logic
 Probabilistic valuation analysis with uncertainty visualization
 """
 import numpy as np
-from scipy import stats
+import numpy as np
+
+def generate_distribution(mean, std_dev, points=100):
+    if std_dev == 0:
+        std_dev = 1  # prevent divide by zero
+
+    x = np.linspace(mean - 3*std_dev, mean + 3*std_dev, points)
+    y = (1/(std_dev * np.sqrt(2*np.pi))) * np.exp(-(x-mean)**2/(2*std_dev**2))
+
+    return x, y
 
 
 def collect_valuation_methods(core_financials):
