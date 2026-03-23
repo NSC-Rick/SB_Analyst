@@ -12,6 +12,7 @@ from src.state.financial_state import (
     get_sync_status
 )
 from src.state.sync_engine import enforce_core_defaults, push_to_core
+from src.ui.ui_guidance import show_contextual_help, is_guidance_enabled
 
 
 def render_financial_modeler_pro():
@@ -52,6 +53,8 @@ def render_pro_inputs():
             st.caption("💰 *Using baseline from Financial Modeler Lite*")
         elif source:
             st.caption(f"📊 Last updated by: {source}")
+    else:
+        show_contextual_help("empty_revenue")
     
     st.divider()
     
@@ -86,7 +89,10 @@ def render_pro_inputs():
 def revenue_section():
     """Revenue inputs with multiple streams"""
     
-    st.markdown("#### 💰 Revenue Streams")
+    st.markdown("♣♣♣♣ 💰 Revenue Streams")
+    
+    if is_guidance_enabled():
+        st.caption("ℹ️ Model up to 5 different revenue sources with individual pricing and growth rates")
     
     num_streams = st.number_input(
         "Number of Revenue Streams",
@@ -112,6 +118,7 @@ def revenue_section():
                     key=f"stream_name_{i}"
                 )
                 
+                help_text = "Average price per unit or transaction. Use your actual pricing or average transaction value."
                 price = st.number_input(
                     "Average Price ($)",
                     min_value=0.0,

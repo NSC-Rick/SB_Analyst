@@ -10,6 +10,7 @@ from src.state.financial_state import (
     sync_from_lite,
     get_sync_status
 )
+from src.ui.ui_guidance import show_contextual_help, is_guidance_enabled
 
 
 def render_financial_modeler_lite():
@@ -49,67 +50,77 @@ def render_inputs_section():
     
     core = get_core_financials()
     
+    # Smart prompt for empty revenue
+    if core.get("revenue", 0) == 0:
+        show_contextual_help("empty_revenue")
+    
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown("#### Revenue Assumptions")
         
         default_revenue = int(core.get("revenue", 50000)) if core.get("revenue", 0) > 0 else 50000
+        help_text = "Enter your expected monthly revenue. Use realistic projections based on past performance or conservative assumptions."
         monthly_revenue = st.number_input(
             "Current Monthly Revenue ($)",
             min_value=0,
             value=default_revenue,
             step=1000,
-            help="Enter your average monthly revenue"
+            help=help_text if is_guidance_enabled() else None
         )
         
         default_growth = core.get("growth_rate", 0.05) * 100
+        help_text = "Expected monthly revenue growth rate. Conservative: 2-5% | Moderate: 5-10% | Aggressive: 10-20%"
         revenue_growth = st.slider(
             "Expected Monthly Growth Rate (%)",
             min_value=-10.0,
             max_value=20.0,
             value=float(default_growth),
             step=0.5,
-            help="Expected month-over-month revenue growth"
+            help=help_text if is_guidance_enabled() else None
         )
         
         default_months = core.get("projection_months", 12)
         default_index = [3, 6, 12, 24].index(default_months) if default_months in [3, 6, 12, 24] else 2
+        help_text = "How many months to project forward. 12 months = 1 year | 24 months = 2 years. Longer projections have more uncertainty."
         projection_months = st.selectbox(
             "Projection Period (Months)",
             options=[3, 6, 12, 24],
             index=default_index,
-            help="How far ahead to project"
+            help=help_text if is_guidance_enabled() else None
         )
     
     with col2:
         st.markdown("#### Cost Structure")
         
+        help_text = "Direct costs to produce/deliver your product or service. Typical: Services 20-40% | Products 40-60% | Manufacturing 50-70%"
         cogs_percent = st.slider(
             "Cost of Goods Sold (%)",
             min_value=0,
             max_value=100,
             value=40,
             step=5,
-            help="COGS as percentage of revenue"
+            help=help_text if is_guidance_enabled() else None
         )
         
         default_fixed = int(core.get("fixed_costs", 20000)) if core.get("fixed_costs", 0) > 0 else 20000
+        help_text = "Monthly costs that don't vary with revenue: rent, salaries, insurance, software subscriptions, utilities."
         fixed_costs = st.number_input(
             "Monthly Fixed Costs ($)",
             min_value=0,
             value=default_fixed,
             step=1000,
-            help="Rent, salaries, utilities, etc."
+            help=help_text if is_guidance_enabled() else None
         )
         
+        help_text = "Costs that scale with revenue: sales commissions, transaction fees, shipping. These increase as revenue grows."
         variable_costs_percent = st.slider(
             "Variable Costs (%)",
             min_value=0,
             max_value=50,
             value=15,
             step=5,
-            help="Variable costs as percentage of revenue"
+            help=help_text if is_guidance_enabled() else None
         )
     
     if "fm_inputs" not in st.session_state:

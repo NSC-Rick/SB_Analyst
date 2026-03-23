@@ -24,6 +24,20 @@ from src.modules.valuation_logic import (
     get_method_status,
     get_method_status_detailed
 )
+from src.modules.valuation_distribution import (
+    collect_valuation_methods,
+    calculate_distribution_stats,
+    generate_distribution_curve,
+    calculate_confidence_intervals,
+    calculate_variability_level,
+    generate_distribution_summary
+)
+from src.modules.valuation_distribution_chart import (
+    create_distribution_chart,
+    create_confidence_summary_chart,
+    create_method_comparison_chart
+)
+from src.ui.ui_guidance import show_contextual_help, show_smart_prompt_high_variability, is_guidance_enabled
 
 
 def render_business_valuation():
@@ -156,34 +170,111 @@ def render_readiness_section(readiness_score, core):
 
 
 def render_primary_valuation_section(core):
-    """Render the primary valuation estimate"""
+    """Render the primary valuation estimate with distribution curve"""
     
-    st.markdown("### 💰 Estimated Business Value")
+    st.markdown("### 💰 Estimated Business Value Distribution")
     
-    low, high, method = calculate_primary_valuation(core)
+    # Collect all valuation methods
+    methods = collect_valuation_methods(core)
     
-    if low == 0 and high == 0:
+    if not methods:
         st.warning("⚠️ Insufficient data for valuation. Complete Financial Modeler inputs.")
         return
     
-    col1, col2, col3 = st.columns([2, 2, 1])
+    # Calculate distribution statistics
+    stats = calculate_distribution_stats(methods)
+    
+    if not stats:
+        st.warning("⚠️ Unable to calculate valuation distribution.")
+        return
+    
+    # Calculate confidence intervals
+    confidence_intervals = calculate_confidence_intervals(stats["mean"], stats["std_dev"])
+    
+    # Calculate variability level
+    variability = calculate_variability_level(stats["std_dev"], stats["mean"])
+    
+    # Generate distribution summary
+    summary = generate_distribution_summary(stats, confidence_intervals, variability)
+    
+    # Display primary metrics
+    col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("Low Estimate", f"${low:,.0f}")
+        st.metric("Mean Valuation", f"${stats['mean']:,.0f}")
     
     with col2:
-        st.metric("High Estimate", f"${high:,.0f}")
+        st.metric("Std Deviation", f"${stats['std_dev']:,.0f}")
     
     with col3:
-        midpoint = (low + high) / 2
-        st.metric("Midpoint", f"${midpoint:,.0f}")
+        ci_68 = confidence_intervals["ci_68"]
+        st.metric("68% Range", f"${ci_68['low']:,.0f} - ${ci_68['high']:,.0f}")
     
-    st.success(f"**Primary Method:** {method}")
+    with col4:
+        st.metric("Variability", f"{variability['icon']} {variability['level']}")
+    
+    # Show variability message
+    if variability["level"] == "High":
+        st.warning(f"⚠️ {variability['message']}")
+        if is_guidance_enabled():
+            show_smart_prompt_high_variability()
+    elif variability["level"] == "Moderate":
+        st.info(f"ℹ️ {variability['message']}")
+    else:
+        st.success(f"✅ {variability['message']}")
+    
+    st.divider()
+    
+    # Generate and display distribution curve
+    x_values, y_values = generate_distribution_curve(stats["mean"], stats["std_dev"])
+    
+    fig = create_distribution_chart(stats, confidence_intervals, methods, x_values, y_values)
+    st.plotly_chart(fig, use_container_width=True)
+    
+    if is_guidance_enabled():
+        st.caption("📊 *Distribution curve shows probability density of valuation. Shaded areas represent confidence intervals: darker = higher confidence.*")
+    else:
+        st.caption("📊 *Distribution curve shows probability density of valuation.*")
+    
+    st.divider()
+    
+    # Display confidence intervals summary
+    col5, col6 = st.columns(2)
+    
+    with col5:
+        st.markdown("#### 68% Confidence Range")
+        st.markdown(f"**Low:** ${ci_68['low']:,.0f}")
+        st.markdown(f"**Mid:** ${stats['mean']:,.0f}")
+        st.markdown(f"**High:** ${ci_68['high']:,.0f}")
+        st.caption("*68% probability the true value falls in this range*")
+    
+    with col6:
+        ci_95 = confidence_intervals["ci_95"]
+        st.markdown("#### 95% Confidence Range")
+        st.markdown(f"**Low:** ${ci_95['low']:,.0f}")
+        st.markdown(f"**Mid:** ${stats['mean']:,.0f}")
+        st.markdown(f"**High:** ${ci_95['high']:,.0f}")
+        st.caption("*95% probability the true value falls in this range*")
+    
+    st.divider()
+    
+    # Method comparison chart
+    if len(methods) > 1:
+        fig_comparison = create_method_comparison_chart(methods)
+        st.plotly_chart(fig_comparison, use_container_width=True)
     
     st.caption("⚠️ *These are estimated ranges, not certified valuations. Actual value depends on market conditions, growth potential, and buyer perspective.*")
     
-    # Store for downstream use
-    st.session_state["valuation_range"] = (low, high)
+    # Store for downstream use (use 95% CI as range)
+    st.session_state["valuation_range"] = (ci_95["low"], ci_95["high"])
+    st.session_state["valuation_distribution"] = {
+        "mean": stats["mean"],
+        "std_dev": stats["std_dev"],
+        "confidence_68": confidence_intervals["ci_68"],
+        "confidence_95": confidence_intervals["ci_95"],
+        "variability": variability,
+        "methods": methods,
+    }
 
 
 def render_method_breakdown_panel_enhanced(core):

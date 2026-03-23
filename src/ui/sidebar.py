@@ -50,6 +50,12 @@ def render_sidebar():
         render_save_load_compact()
         
         st.markdown("---")
+        
+        # Help Toggle
+        from src.ui.ui_guidance import render_help_toggle
+        render_help_toggle()
+        
+        st.markdown("---")
         st.caption("North Star Business Lab")
         st.caption("Decision Support Platform")
 

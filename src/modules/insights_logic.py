@@ -68,7 +68,7 @@ def generate_financial_insights(core_financials):
 
 def generate_valuation_insights(valuation_range, core_financials):
     """
-    Generate insights from valuation data
+    Generate insights from valuation data with variability detection
     
     Args:
         valuation_range: Tuple of (low, high) or None
@@ -77,6 +77,8 @@ def generate_valuation_insights(valuation_range, core_financials):
     Returns:
         list: Tuples of (insight_text, priority)
     """
+    import streamlit as st
+    
     insights = []
     
     if not valuation_range:
@@ -86,9 +88,24 @@ def generate_valuation_insights(valuation_range, core_financials):
     revenue = core_financials.get("revenue", 0)
     profit = core_financials.get("profit", 0)
     
-    # Valuation exists
-    midpoint = (low + high) / 2
-    insights.append((f"💎 **Estimated business value: ${low:,.0f} - ${high:,.0f}** (midpoint: ${midpoint:,.0f})", "positive"))
+    # Check for distribution data and variability
+    valuation_dist = st.session_state.get("valuation_distribution")
+    if valuation_dist:
+        variability = valuation_dist.get("variability", {})
+        mean = valuation_dist.get("mean", 0)
+        std_dev = valuation_dist.get("std_dev", 0)
+        
+        # High variability warning
+        if variability.get("level") == "High":
+            cv = variability.get("cv", 0)
+            insights.append((f"⚠️ **High variability between valuation methods** (CV: {cv:.1f}%) - consider gathering more financial data or using multiple scenarios.", "high"))
+        
+        # Valuation with distribution
+        insights.append((f"💎 **Mean business value: ${mean:,.0f}** with ±${std_dev:,.0f} standard deviation", "positive"))
+    else:
+        # Fallback to range
+        midpoint = (low + high) / 2
+        insights.append((f"💎 **Estimated business value: ${low:,.0f} - ${high:,.0f}** (midpoint: ${midpoint:,.0f})", "positive"))
     
     # Valuation driver analysis
     if profit <= 0 and revenue > 0:
