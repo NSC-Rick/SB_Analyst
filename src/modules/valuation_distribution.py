@@ -3,28 +3,55 @@ Valuation Distribution Curve Logic
 Probabilistic valuation analysis with uncertainty visualization
 """
 import numpy as np
-import numpy as np
+
 
 def generate_distribution(mean, std_dev, points=100):
-    if std_dev == 0:
-        std_dev = 1  # prevent divide by zero
-
-    x = np.linspace(mean - 3*std_dev, mean + 3*std_dev, points)
-    y = (1/(std_dev * np.sqrt(2*np.pi))) * np.exp(-(x-mean)**2/(2*std_dev**2))
-
+    """
+    Generate normal distribution using numpy only (no scipy)
+    
+    Args:
+        mean: Mean of distribution
+        std_dev: Standard deviation
+        points: Number of points to generate
+    
+    Returns:
+        tuple: (x_values, y_values)
+    """
+    # Safety: prevent divide by zero
+    if std_dev == 0 or std_dev < 0.01:
+        std_dev = max(mean * 0.10, 1)  # Use 10% of mean or minimum 1
+    
+    # Safety: ensure mean is valid
+    if mean <= 0:
+        mean = 1
+    
+    # Generate x range: mean ± 3 std deviations
+    x_min = max(0, mean - 3 * std_dev)  # Don't go negative
+    x_max = mean + 3 * std_dev
+    
+    x = np.linspace(x_min, x_max, points)
+    
+    # Calculate normal distribution PDF using numpy
+    # Formula: f(x) = (1/(σ√(2π))) * e^(-(x-μ)²/(2σ²))
+    y = (1 / (std_dev * np.sqrt(2 * np.pi))) * np.exp(-(x - mean)**2 / (2 * std_dev**2))
+    
     return x, y
 
 
 def collect_valuation_methods(core_financials):
     """
-    Collect all available valuation method results
+    Collect all available valuation method results with safety checks
     
     Args:
         core_financials: Core financial data
     
     Returns:
-        dict: Available method values
+        dict: Available method values (only positive, valid values)
     """
+    # Safety: handle None or empty core_financials
+    if not core_financials:
+        return {}
+    
     from src.modules.valuation_logic import (
         calculate_revenue_multiple_valuation,
         calculate_earnings_multiple_valuation,
@@ -36,13 +63,13 @@ def collect_valuation_methods(core_financials):
     # Revenue Multiple Method
     if is_method_available("revenue", core_financials):
         revenue_val = calculate_revenue_multiple_valuation(core_financials)
-        if revenue_val:
+        if revenue_val and revenue_val.get("mid", 0) > 0:
             methods["revenue_method"] = revenue_val["mid"]
     
     # Earnings Multiple Method
     if is_method_available("earnings", core_financials):
         earnings_val = calculate_earnings_multiple_valuation(core_financials)
-        if earnings_val:
+        if earnings_val and earnings_val.get("mid", 0) > 0:
             methods["earnings_method"] = earnings_val["mid"]
     
     # Asset Method (simplified - based on cash + revenue/4)
@@ -50,7 +77,9 @@ def collect_valuation_methods(core_financials):
     cash = core_financials.get("cash_on_hand", 0)
     if revenue > 0:
         asset_value = cash + (revenue * 12 / 4)  # Cash + 3 months revenue
-        methods["asset_method"] = asset_value
+        # Safety: only add if positive
+        if asset_value > 0:
+            methods["asset_method"] = asset_value
     
     return methods
 
@@ -63,12 +92,20 @@ def calculate_distribution_stats(methods):
         methods: Dict of method values
     
     Returns:
-        dict: Distribution statistics
+        dict: Distribution statistics or None if invalid
     """
+    # Safety: handle empty or None methods
     if not methods:
         return None
     
     values = list(methods.values())
+    
+    # Safety: handle empty values list
+    if len(values) == 0:
+        return None
+    
+    # Safety: filter out invalid values (negative, zero, None)
+    values = [v for v in values if v is not None and v > 0]
     
     if len(values) == 0:
         return None
@@ -98,7 +135,7 @@ def calculate_distribution_stats(methods):
 
 def generate_distribution_curve(mean, std_dev, num_points=200):
     """
-    Generate normal distribution curve data
+    Generate normal distribution curve data using numpy only
     
     Args:
         mean: Mean valuation
@@ -108,21 +145,13 @@ def generate_distribution_curve(mean, std_dev, num_points=200):
     Returns:
         tuple: (x_values, y_values)
     """
-    # Generate x range: mean ± 3 std deviations
-    x_min = max(0, mean - 3 * std_dev)  # Don't go negative
-    x_max = mean + 3 * std_dev
-    
-    x_values = np.linspace(x_min, x_max, num_points)
-    
-    # Calculate normal distribution
-    y_values = stats.norm.pdf(x_values, mean, std_dev)
-    
-    return x_values, y_values
+    # Use numpy-only implementation
+    return generate_distribution(mean, std_dev, points=num_points)
 
 
 def calculate_confidence_intervals(mean, std_dev):
     """
-    Calculate confidence intervals for distribution
+    Calculate confidence intervals for distribution with safety checks
     
     Args:
         mean: Mean valuation
@@ -131,6 +160,13 @@ def calculate_confidence_intervals(mean, std_dev):
     Returns:
         dict: Confidence intervals
     """
+    # Safety: ensure valid inputs
+    if mean <= 0:
+        mean = 1
+    
+    if std_dev <= 0:
+        std_dev = mean * 0.10
+    
     # 68% confidence interval (±1 std dev)
     ci_68_low = max(0, mean - std_dev)
     ci_68_high = mean + std_dev
@@ -155,7 +191,7 @@ def calculate_confidence_intervals(mean, std_dev):
 
 def calculate_variability_level(std_dev, mean):
     """
-    Determine variability level of valuation
+    Determine variability level of valuation with safety checks
     
     Args:
         std_dev: Standard deviation
@@ -164,6 +200,13 @@ def calculate_variability_level(std_dev, mean):
     Returns:
         dict: Variability assessment
     """
+    # Safety: handle invalid inputs
+    if mean <= 0:
+        mean = 1
+    
+    if std_dev < 0:
+        std_dev = 0
+    
     # Calculate coefficient of variation (CV)
     cv = (std_dev / mean) * 100 if mean > 0 else 0
     
