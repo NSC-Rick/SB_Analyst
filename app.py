@@ -37,11 +37,13 @@ def load_custom_css():
 
 
 def render_debug_panel():
-    """Render data integrity debug panel"""
+    """Render data integrity debug panel with sync validation"""
     from src.state.data_validator import validate_system_integrity
     from src.state.financial_state import get_core_financials
+    from src.state.system_validator import validate_system_sync, get_integrity_score, generate_sync_report
+    from src.state.sync_engine import sync_status, get_sync_history
     
-    with st.expander("🔍 Data Integrity Debug Panel"):
+    with st.expander("🔍 Data Integrity & Sync Debug Panel"):
         st.markdown("### System State Overview")
         
         col1, col2 = st.columns(2)
@@ -126,6 +128,42 @@ def render_debug_panel():
         
         if report['integrity_score'] == 100:
             st.success("✅ All data contracts validated successfully!")
+        
+        st.divider()
+        
+        st.markdown("### Sync Validation")
+        
+        # Check sync issues
+        sync_issues = validate_system_sync()
+        sync_score = get_integrity_score()
+        
+        col6, col7 = st.columns(2)
+        
+        with col6:
+            st.metric("Sync Score", f"{sync_score}%")
+            
+            # Show sync status
+            status = sync_status()
+            if status["has_data"]:
+                st.success(f"✅ Synced - Last by: {status['last_updated_by']}")
+            else:
+                st.warning("⚠️ No data in core")
+        
+        with col7:
+            st.metric("Sync Issues", len(sync_issues))
+            
+            # Show sync history
+            history = get_sync_history()
+            if history:
+                last_sync = history[-1]
+                st.caption(f"Last sync: {last_sync['source']}")
+        
+        if sync_issues:
+            st.error("**Sync Issues Detected:**")
+            for issue in sync_issues:
+                st.write(issue)
+        else:
+            st.success("✅ All modules synced correctly!")
 
 
 def render_main_content():

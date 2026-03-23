@@ -11,6 +11,7 @@ from src.state.financial_state import (
     sync_from_pro,
     get_sync_status
 )
+from src.state.sync_engine import enforce_core_defaults, push_to_core
 
 
 def render_financial_modeler_pro():
@@ -45,8 +46,12 @@ def render_pro_inputs():
         st.info(f"💡 **Idea:** {idea_ctx['idea_title']} | **Viability Score:** {idea_ctx['viability_score']}/100")
     
     sync_status = get_sync_status()
-    if sync_status["has_data"] and sync_status["source_module"] == "financial_modeler_lite":
-        st.caption("💰 *Using baseline from Financial Modeler Lite*")
+    if sync_status["has_data"]:
+        source = sync_status.get("source_module", "Unknown")
+        if source == "financial_modeler_lite":
+            st.caption("💰 *Using baseline from Financial Modeler Lite*")
+        elif source:
+            st.caption(f"📊 Last updated by: {source}")
     
     st.divider()
     
